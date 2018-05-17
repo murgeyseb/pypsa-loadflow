@@ -11,7 +11,7 @@ In order to build PyPSA powerflow integration, you need the following environmen
 To build PyPSA powerflow integration, just do the following:
 
 ```
-$> git clone https://devin-source.rte-france.com/capacity-calculation/pypsa-loadflow.git
+$> git clone https://github.com/murgeyseb/pypsa-loadflow.git
 $> mvn clean install
 ```
 
