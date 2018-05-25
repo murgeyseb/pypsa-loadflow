@@ -15,6 +15,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
@@ -56,11 +58,13 @@ public class PyPsaLoadFlowParametersConfigLoaderTest {
         try (FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix())) {
             InMemoryPlatformConfig platformConfig = new InMemoryPlatformConfig(fileSystem);
 
+            Path loadflowScriptPath = Paths.get("/tmp/pypsaLoadflow.py");
             boolean debugActivated = true;
             boolean dcLoadFlow = true;
             float relaxationCoeff = 0.7f;
 
             MapModuleConfig mapModuleConfig = platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
+            mapModuleConfig.setPathProperty("loadflowScriptPath", loadflowScriptPath);
             mapModuleConfig.setStringProperty("debugActivated", Objects.toString(debugActivated));
             mapModuleConfig.setStringProperty("dcLoadFlow", Objects.toString(dcLoadFlow));
             mapModuleConfig.setStringProperty("relaxationCoeff", Objects.toString(relaxationCoeff));
@@ -68,6 +72,7 @@ public class PyPsaLoadFlowParametersConfigLoaderTest {
             PyPsaLoadFlowParametersConfigLoader configLoader = new PyPsaLoadFlowParametersConfigLoader();
             PyPsaLoadFlowParameters parameters = configLoader.load(platformConfig);
 
+            assertEquals(loadflowScriptPath.toString(), parameters.getLoadflowScriptPath().toString());
             assertEquals(debugActivated, parameters.isDebugActivated());
             assertEquals(dcLoadFlow, parameters.isDcLoadFlow());
             assertEquals(relaxationCoeff, parameters.getRelaxationCoeff(), 0f);

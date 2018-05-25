@@ -13,9 +13,12 @@ import com.powsybl.commons.config.MapModuleConfig;
 import com.powsybl.loadflow.LoadFlowParameters;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 import static org.junit.Assert.*;
@@ -41,7 +44,8 @@ public class PyPsaLoadFlowParametersTest {
         fileSystem.close();
     }
 
-    public void checkValues(PyPsaLoadFlowParameters parameters, boolean debugActivated, boolean dcLoadFlow, float relaxationCoeff) {
+    public void checkValues(PyPsaLoadFlowParameters parameters, Path loadflowScriptPath, boolean debugActivated, boolean dcLoadFlow, float relaxationCoeff) {
+        assertEquals(loadflowScriptPath.toString(), parameters.getLoadflowScriptPath().toString());
         assertEquals(debugActivated, parameters.isDebugActivated());
         assertEquals(dcLoadFlow, parameters.isDcLoadFlow());
         assertEquals(relaxationCoeff, parameters.getRelaxationCoeff(), 0.0f);
@@ -51,6 +55,7 @@ public class PyPsaLoadFlowParametersTest {
     public void testNoConfig() {
         PyPsaLoadFlowParameters parameters = pyPsaLoadFlowParametersConfigLoader.load(platformConfig);
         checkValues(parameters,
+                PyPsaLoadFlowParameters.DEFAULT_LOADFLOW_SCRIPT_PATH,
                 PyPsaLoadFlowParameters.DEFAULT_DEBUG_ACTIVATED,
                 PyPsaLoadFlowParameters.DEFAULT_DC_LOAD_FLOW,
                 PyPsaLoadFlowParameters.DEFAULT_RELAXATION_COEFF);
@@ -58,32 +63,37 @@ public class PyPsaLoadFlowParametersTest {
 
     @Test
     public void checkConfig() {
+        Path loadflowScriptPath = Paths.get("/tmp/pypsaLoadflow.py");
         boolean debugActivated = true;
         boolean dcLoadFlow = true;
         float relaxationCoeff = 0.7f;
 
         MapModuleConfig mapModuleConfig = platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
+        mapModuleConfig.setPathProperty("loadflowScriptPath", loadflowScriptPath);
         mapModuleConfig.setStringProperty("debugActivated", Objects.toString(debugActivated));
         mapModuleConfig.setStringProperty("dcLoadFlow", Objects.toString(dcLoadFlow));
         mapModuleConfig.setStringProperty("relaxationCoeff", Objects.toString(relaxationCoeff));
 
         PyPsaLoadFlowParameters parameters = pyPsaLoadFlowParametersConfigLoader.load(platformConfig);
-        checkValues(parameters, debugActivated, dcLoadFlow, relaxationCoeff);
+        checkValues(parameters, loadflowScriptPath, debugActivated, dcLoadFlow, relaxationCoeff);
     }
 
     @Test
     public void checkIncompleteConfig() {
+        Path loadflowScriptPath = Paths.get("/tmp/pypsaLoadflow.py");
         boolean debugActivated = true;
         boolean dcLoadFlow = true;
         float relaxationCoeff = 0.7f;
 
         MapModuleConfig mapModuleConfig = platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
+        mapModuleConfig.setPathProperty("loadFlowScriptPath", loadflowScriptPath);
         mapModuleConfig.setStringProperty("debugActivate", Objects.toString(debugActivated));
         mapModuleConfig.setStringProperty("dcLoadflow", Objects.toString(dcLoadFlow));
         mapModuleConfig.setStringProperty("RelaxationCoeff", Objects.toString(relaxationCoeff));
 
         PyPsaLoadFlowParameters parameters = pyPsaLoadFlowParametersConfigLoader.load(platformConfig);
         checkValues(parameters,
+                PyPsaLoadFlowParameters.DEFAULT_LOADFLOW_SCRIPT_PATH,
                 PyPsaLoadFlowParameters.DEFAULT_DEBUG_ACTIVATED,
                 PyPsaLoadFlowParameters.DEFAULT_DC_LOAD_FLOW,
                 PyPsaLoadFlowParameters.DEFAULT_RELAXATION_COEFF);
@@ -91,26 +101,30 @@ public class PyPsaLoadFlowParametersTest {
 
     @Test
     public void checkSetters() {
+        Path loadflowScriptPath = Paths.get("/tmp/pypsaLoadflow.py");
         boolean debugActivated = true;
         boolean dcLoadFlow = true;
         float relaxationCoeff = 0.7f;
 
         PyPsaLoadFlowParameters parameters = new PyPsaLoadFlowParameters();
 
+        parameters.setLoadflowScriptPath(loadflowScriptPath);
         parameters.setDebugActivated(debugActivated);
         parameters.setDcLoadFlow(dcLoadFlow);
         parameters.setRelaxationCoeff(relaxationCoeff);
 
-        checkValues(parameters, debugActivated, dcLoadFlow, relaxationCoeff);
+        checkValues(parameters, loadflowScriptPath, debugActivated, dcLoadFlow, relaxationCoeff);
     }
 
     @Test
     public void checkClone() {
+        Path loadflowScriptPath = Paths.get("/tmp/pypsaLoadflow.py");
         boolean debugActivated = true;
         boolean dcLoadFlow = true;
         float relaxationCoeff = 0.7f;
 
         MapModuleConfig mapModuleConfig = platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
+        mapModuleConfig.setPathProperty("loadflowScriptPath", loadflowScriptPath);
         mapModuleConfig.setStringProperty("debugActivated", Objects.toString(debugActivated));
         mapModuleConfig.setStringProperty("dcLoadFlow", Objects.toString(dcLoadFlow));
         mapModuleConfig.setStringProperty("relaxationCoeff", Objects.toString(relaxationCoeff));
@@ -118,12 +132,12 @@ public class PyPsaLoadFlowParametersTest {
         PyPsaLoadFlowParameters parameters = pyPsaLoadFlowParametersConfigLoader.load(platformConfig);
         PyPsaLoadFlowParameters parametersCloned = new PyPsaLoadFlowParameters(parameters);
 
-        checkValues(parametersCloned, debugActivated, dcLoadFlow, relaxationCoeff);
+        checkValues(parametersCloned, loadflowScriptPath, debugActivated, dcLoadFlow, relaxationCoeff);
     }
 
     @Test
     public void testExtensions() {
-        platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
+        MapModuleConfig mapModuleConfig = platformConfig.createModuleConfig("pypsa-default-loadflow-parameters");
         LoadFlowParameters loadFlowParameters = LoadFlowParameters.load(platformConfig);
 
         assertEquals(1, loadFlowParameters.getExtensions().size());

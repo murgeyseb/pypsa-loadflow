@@ -26,6 +26,9 @@ global output_directory
 global compute_lpf
 # End of script inputs
 
+def slack_distribution(network):
+    return
+
 def run_dc_loadflow(network):
     network.lpf()
     converged = 'True'

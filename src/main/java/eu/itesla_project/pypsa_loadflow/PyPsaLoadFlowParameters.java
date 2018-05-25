@@ -10,6 +10,8 @@ import com.google.common.collect.ImmutableMap;
 import com.powsybl.commons.extensions.AbstractExtension;
 import com.powsybl.loadflow.LoadFlowParameters;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 /**
@@ -18,10 +20,12 @@ import java.util.Objects;
  * @author Sebastien Murgey <sebastien.murgey at rte-france.com>
  */
 public class PyPsaLoadFlowParameters extends AbstractExtension<LoadFlowParameters> {
+    public static final Path DEFAULT_LOADFLOW_SCRIPT_PATH = Paths.get("");
     public static final boolean DEFAULT_DEBUG_ACTIVATED = false;
     public static final boolean DEFAULT_DC_LOAD_FLOW = false;
     public static final float DEFAULT_RELAXATION_COEFF = 1f;
 
+    private Path loadflowScriptPath = DEFAULT_LOADFLOW_SCRIPT_PATH;
     private boolean debugActivated = DEFAULT_DEBUG_ACTIVATED;
     private boolean dcLoadFlow = DEFAULT_DC_LOAD_FLOW;
     private float relaxationCoeff = DEFAULT_RELAXATION_COEFF;
@@ -29,6 +33,27 @@ public class PyPsaLoadFlowParameters extends AbstractExtension<LoadFlowParameter
     @Override
     public String getName() {
         return "PyPSALoadflowParameters";
+    }
+
+    /**
+     * Get the path of loadflow script
+     *
+     * The loadflow script included in the resources cannot be used directly by
+     * Jep when using a jar, so it must be installed outside. The path of the script
+     * is given as a parameter
+     * @return the path of installed loadflow script
+     */
+    public Path getLoadflowScriptPath() {
+        return loadflowScriptPath;
+    }
+
+    /**
+     * Set the path of loadflow script
+     *
+     * @param loadflowScriptPath the path to use for loadflow script
+     */
+    public void setLoadflowScriptPath(Path loadflowScriptPath) {
+        this.loadflowScriptPath = loadflowScriptPath;
     }
 
     /**
@@ -114,6 +139,7 @@ public class PyPsaLoadFlowParameters extends AbstractExtension<LoadFlowParameter
     public PyPsaLoadFlowParameters(PyPsaLoadFlowParameters other) {
         Objects.requireNonNull(other);
 
+        this.loadflowScriptPath = other.loadflowScriptPath;
         this.debugActivated = other.debugActivated;
         this.dcLoadFlow = other.dcLoadFlow;
         this.relaxationCoeff = other.relaxationCoeff;
@@ -122,7 +148,8 @@ public class PyPsaLoadFlowParameters extends AbstractExtension<LoadFlowParameter
     @Override
     public String toString() {
         ImmutableMap.Builder<String, Object> immutableMapBuilder = ImmutableMap.builder();
-        immutableMapBuilder.put("debugActivated", debugActivated)
+        immutableMapBuilder.put("loadflowScriptPath", loadflowScriptPath)
+                .put("debugActivated", debugActivated)
                 .put("dcLoadFlow", dcLoadFlow)
                 .put("relaxationCoeff", relaxationCoeff);
 

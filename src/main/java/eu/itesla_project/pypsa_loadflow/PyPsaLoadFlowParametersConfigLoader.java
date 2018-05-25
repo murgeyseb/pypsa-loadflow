@@ -13,9 +13,7 @@ import com.powsybl.loadflow.LoadFlowParameters;
 
 import java.util.Objects;
 
-import static eu.itesla_project.pypsa_loadflow.PyPsaLoadFlowParameters.DEFAULT_DC_LOAD_FLOW;
-import static eu.itesla_project.pypsa_loadflow.PyPsaLoadFlowParameters.DEFAULT_DEBUG_ACTIVATED;
-import static eu.itesla_project.pypsa_loadflow.PyPsaLoadFlowParameters.DEFAULT_RELAXATION_COEFF;
+import static eu.itesla_project.pypsa_loadflow.PyPsaLoadFlowParameters.*;
 
 /**
  * PyPSA loadflow additional parameters configuration loader
@@ -47,13 +45,14 @@ public class PyPsaLoadFlowParametersConfigLoader implements LoadFlowParameters.C
     @Override
     public PyPsaLoadFlowParameters load(PlatformConfig platformConfig) {
         Objects.requireNonNull(platformConfig);
-        PyPsaLoadFlowParameters parameters = new PyPsaLoadFlowParameters();
         ModuleConfig config = platformConfig.getModuleConfigIfExists(MODULE_NAME);
+        PyPsaLoadFlowParameters pyPsaLoadFlowParameters = new PyPsaLoadFlowParameters();
         if (config != null) {
-            parameters.setDebugActivated(config.getBooleanProperty("debugActivated", DEFAULT_DEBUG_ACTIVATED));
-            parameters.setDcLoadFlow(config.getBooleanProperty("dcLoadFlow", DEFAULT_DC_LOAD_FLOW));
-            parameters.setRelaxationCoeff(config.getFloatProperty("relaxationCoeff", DEFAULT_RELAXATION_COEFF));
+            pyPsaLoadFlowParameters.setLoadflowScriptPath(config.getPathProperty("loadflowScriptPath", DEFAULT_LOADFLOW_SCRIPT_PATH));
+            pyPsaLoadFlowParameters.setDebugActivated(config.getBooleanProperty("debugActivated", DEFAULT_DEBUG_ACTIVATED));
+            pyPsaLoadFlowParameters.setDcLoadFlow(config.getBooleanProperty("dcLoadFlow", DEFAULT_DC_LOAD_FLOW));
+            pyPsaLoadFlowParameters.setRelaxationCoeff(config.getFloatProperty("relaxationCoeff", DEFAULT_RELAXATION_COEFF));
         }
-        return parameters;
+        return pyPsaLoadFlowParameters;
     }
 }

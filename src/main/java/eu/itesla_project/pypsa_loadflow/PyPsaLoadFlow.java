@@ -25,6 +25,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -59,16 +60,19 @@ public class PyPsaLoadFlow implements LoadFlow {
         Objects.requireNonNull(loadFlowParameters);
         LOGGER.debug("Using parameters {}", loadFlowParameters);
 
+        Path loadflowScriptPath;
         boolean debug;
         boolean dcMode;
         float relaxationCoeff;
         PyPsaLoadFlowParameters pyPsaParameters = loadFlowParameters.getExtension(PyPsaLoadFlowParameters.class);
         if (pyPsaParameters != null) {
             LOGGER.debug("Using PyPSA parameters {}", pyPsaParameters);
+            loadflowScriptPath = pyPsaParameters.getLoadflowScriptPath();
             debug = pyPsaParameters.isDebugActivated();
             dcMode = pyPsaParameters.isDcLoadFlow();
             relaxationCoeff = pyPsaParameters.getRelaxationCoeff();
         } else {
+            loadflowScriptPath = PyPsaLoadFlowParameters.DEFAULT_LOADFLOW_SCRIPT_PATH;
             debug = PyPsaLoadFlowParameters.DEFAULT_DEBUG_ACTIVATED;
             dcMode = PyPsaLoadFlowParameters.DEFAULT_DC_LOAD_FLOW;
             relaxationCoeff = PyPsaLoadFlowParameters.DEFAULT_RELAXATION_COEFF;
@@ -106,7 +110,7 @@ public class PyPsaLoadFlow implements LoadFlow {
                 jep.set("output_directory", workingDirectory.toPath().resolve("outputs").toString());
 
                 // Run script
-                jep.runScript(getClass().getResource("/pypsaLoadflow.py").getFile());
+                jep.runScript(loadflowScriptPath.toString());
 
                 // Get script results
                 isOk = Boolean.valueOf((String) jep.getValue("converged"));
@@ -135,7 +139,14 @@ public class PyPsaLoadFlow implements LoadFlow {
 
     @Override
     public CompletableFuture<LoadFlowResult> runAsync(String workingStateId, LoadFlowParameters parameters) {
-        throw new UnsupportedOperationException("Asynchronous call not available with PyPSA loadflow");
+        network.getStateManager().setWorkingState(workingStateId);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return run(parameters);
+            } catch (Exception e) {
+                throw new PowsyblException(e);
+            }
+        }, computationManager.getExecutor());
     }
 
     @Override
